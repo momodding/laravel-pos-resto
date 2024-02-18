@@ -11,7 +11,7 @@
             <li class="nav-item dropdown">
                 <a href="#" class="nav-link has-dropdown"><i class="fas fa-fire"></i><span>Dashboard</span></a>
                 <ul class="dropdown-menu">
-                    <li class='{{ Request::is('dashboard-general-dashboard') ? 'active' : '' }}'>
+                    <li class='{{ Request::is(' dashboard-general-dashboard') ? 'active' : '' }}'>
                         <a class="nav-link" href="{{ url('dashboard-general-dashboard') }}">General Dashboard</a>
                     </li>
                     <li class="{{ Request::is('dashboard-ecommerce-dashboard') ? 'active' : '' }}">
@@ -19,19 +19,21 @@
                     </li>
                 </ul>
             </li>
+            @auth
 
             <li class="nav-item dropdown">
                 <a href="#" class="nav-link has-dropdown"><i class="fas fa-fire"></i><span>Users</span></a>
                 <ul class="dropdown-menu">
                     <li '>
-                        <a class="nav-link" href="{{ route('users.index') }}">All Users</a>
+                        <a class="nav-link" href="{{ route(' users.index') }}">All Users</a>
                     </li>
 
                 </ul>
             </li>
 
             <li class="nav-item dropdown">
-                <a href="#" class="nav-link has-dropdown"><i class="fas fa-fire"></i><span>Products & Category</span></a>
+                <a href="#" class="nav-link has-dropdown"><i class="fas fa-fire"></i><span>Products &
+                        Category</span></a>
                 <ul class="dropdown-menu">
                     <li>
                         <a class="nav-link" href="{{ route('products.index') }}">All Products</a>
@@ -52,6 +54,7 @@
 
                 </ul>
             </li> --}}
+            @endauth
 
     </aside>
 </div>
