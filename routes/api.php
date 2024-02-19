@@ -19,3 +19,5 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 });
 
 Route::post('/login', 'App\Http\Controllers\API\AuthController@login');
+// products api resource with middleware auth:sanctum
+Route::apiResource('/product', 'App\Http\Controllers\API\ProductController')->middleware('auth:sanctum');
