@@ -20,7 +20,7 @@ services:
             - db
 
     db:
-        image: mysql:5.7.42-debian
+        image: mariadb
         container_name: laravel-backend-mysql
         restart: always
         environment:
