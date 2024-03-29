@@ -13,6 +13,8 @@ class ProductController extends Controller
     {
         //get latest 10 products and response paginate api
         $products = Product::latest()->paginate(10);
+        // load category
+        $products->load('category');
         return response()->json([
             'success' => true,
             'data' => $products
