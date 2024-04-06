@@ -1,18 +1,33 @@
-# FROM php:8.1-fpm-alpine3.19
+FROM composer:latest as vendor
+RUN mkdir -p /var/www
+WORKDIR /var/www
+COPY database/ ./database/
+COPY composer.* ./
+RUN composer install \
+   --ignore-platform-reqs \
+   --no-interaction \
+   --no-plugins \
+   --no-scripts \
+   --prefer-dist
+COPY . .
+
+RUN composer dump-autoload
+
+# Build asset
+FROM node:18-alpine as asset
+RUN mkdir -p /var/www/public
+WORKDIR /var/www
+COPY package*.json ./
+RUN npm install
+COPY vite.config.js ./
+COPY resources/ resources/
+RUN npm run build
+
 FROM php:8.1-fpm
 
 ARG user
 ARG uid
 
-# Copy composer.lock and composer.json
-COPY composer.lock composer.json /var/www/
-
-COPY .env .env.example /var/www/
-
-# Set working directory
-WORKDIR /var/www
-
-# Install dependencies
 RUN apt-get update && apt-get install -y \
     git \
     curl \
@@ -22,42 +37,24 @@ RUN apt-get update && apt-get install -y \
     zip \
     unzip
 
-# Clear cache
 RUN apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# ADD ./ZscalerRootCertificate.crt /usr/local/share/ca-certificates/
-# RUN apk add --no-cache \
-#     --repository http://dl-cdn.alpinelinux.org/alpine/v3.19/main \
-#     ca-certificates \
-#     openssl \
-#     curl
-# COPY ca/* /usr/local/share/ca-certificates/
-RUN update-ca-certificates
-
-# Install extensions
-RUN docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd
-# RUN docker-php-ext-install mysqli pdo pdo_mysql
-# RUN docker-php-ext-configure gd --with-gd --with-freetype-dir=/usr/include/ --with-jpeg-dir=/usr/include/ --with-png-dir=/usr/include/
-# RUN docker-php-ext-install gd
-
-# Install composer
-RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
-
-# Add user for laravel application
+RUN docker-php-ext-install pdo pdo_mysql mbstring exif pcntl bcmath gd
+RUN docker-php-ext-install mysqli && docker-php-ext-enable mysqli
 RUN useradd -G www-data,root -u $uid -d /home/$user $user
 
-# Add user for npm
-# RUN chown -R $user:$(id -gn $user) /home/$user/.config
+WORKDIR /var/www
+COPY --from=vendor /usr/bin/composer /usr/bin/composer
+COPY --chown=$user:$user . .
+COPY --chown=$user:$user --from=vendor /var/www/vendor/ ./vendor/
+COPY --chown=$user:$user --from=asset /var/www/public/build/ ./public/build/
 
-# Copy existing application directory contents
-COPY . /var/www
-
-# Copy existing application directory permissions
-COPY --chown=$user:$user . /var/www
-
-# Change current user to www
+RUN php artisan config:cache && \
+    php artisan route:cache && \
+    chmod 777 -R /var/www/storage/ && \
+    chown -R $user:$user /var/www/
 USER $user
 
-# Expose port 9000 and start php-fpm server
+
 EXPOSE 9000
 CMD ["php-fpm"]

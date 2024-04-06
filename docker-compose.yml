@@ -35,7 +35,7 @@ services:
         restart: unless-stopped
         environment:
             - MYSQL_ROOT_PASSWORD=root
-            - MYSQL_DATABASE=root
+            - MYSQL_DATABASE=laravel_pos
             - ALLOW_EMPTY_PASSWORD=yes
             - MARIADB_USER=user
             - MARIADB_PASSWORD=root
